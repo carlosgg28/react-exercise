@@ -11,8 +11,8 @@ export default function Home() {
     const handleClick = () => handleFilterAlcoholic(); //handle checkbox
     const cocktailNameRef = useRef();
 
-    const [addrtype, setAddrtype] = useState(["Orange", "Gin", "Lemon", "Coke", "Vodka"])
-    const Add = addrtype.map(Add => Add);
+    const [ingFilter, setIngFilter] = useState(["Orange", "Gin", "Lemon", "Coke", "Vodka"])
+    const Ing = ingFilter.map(Ing => Ing);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [cocktailsPerPage, setCocktailsPerPage] = useState(10);
@@ -31,20 +31,42 @@ export default function Home() {
             .then((actualData) => setCocktails(actualData.drinks));
     }
 
-    function handleFilterAlcoholic(){ //filter cocktails by alcohol
-        if (!checked) fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Alcoholic")
-            .then((response) => response.json())
-            .then((actualData) => setCocktails(actualData.drinks));
-        else fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic")
-        .then((response) => response.json())
-        .then((actualData) => setCocktails(actualData.drinks));
+    async function handleFilterAlcoholic(){ //filter cocktails by alcohol
+        const fullCocktailDetails = [];
+        if (!checked){
+            setChecked(!checked);
+            const cocktailsFilteredResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Alcoholic")
+            .then((response) => response.json());
+            const cocktailsFiltered = cocktailsFilteredResponse.drinks;
+            for (const cocktail of cocktailsFiltered){
+                const cocktailDetailsResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i="+cocktail.idDrink)
+                .then((response) => response.json());
+                //console.log(cocktailDetailsResponse);
+                const cocktailDetails = cocktailDetailsResponse.drinks[0];
+                //console.log(cocktailDetails);
+                fullCocktailDetails.push(cocktailDetails);
+            }
+        }
+        else{
+            setChecked(!checked);
+            const cocktailsFilteredResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic")
+            .then((response) => response.json());
+            const cocktailsFiltered = cocktailsFilteredResponse.drinks;
+            for (const cocktail of cocktailsFiltered){
+                const cocktailDetailsResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i="+cocktail.idDrink)
+                .then((response) => response.json());
+                //console.log(cocktailDetailsResponse);
+                const cocktailDetails = cocktailDetailsResponse.drinks[0];
+                //console.log(cocktailDetails);
+                fullCocktailDetails.push(cocktailDetails);
+            }
+        }
 
-        setChecked(!checked);
+        setCocktails(fullCocktailDetails);
     }
 
     async function handleFilterIngredient(e){
-        //console.log((addrtype[e.target.value]));
-        const cocktailsFilteredResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?i="+addrtype[e.target.value])
+        const cocktailsFilteredResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?i="+ingFilter[e.target.value])
             .then((response) => response.json());
         const cocktailsFiltered = cocktailsFilteredResponse.drinks;
         //console.log(cocktailsFiltered);
@@ -96,7 +118,7 @@ export default function Home() {
             onChange={e => handleFilterIngredient(e)}
             className="browser-default custom-select" >
             {
-                Add.map((address, key) => <option key={key}value={key}>{address}</option>)
+                Ing.map((ingredient, key) => <option key={key}value={key}>{ingredient}</option>)
             }
         </select >
         
