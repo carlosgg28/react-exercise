@@ -1,14 +1,21 @@
 import React, {useState, useRef, useEffect} from 'react'
 import CocktailList from './CocktailList';
+import Pagination from './Pagination';
 import Navbar from "react-bootstrap/Navbar";
+import Button from "react-bootstrap/Button";
 import Nav from "react-bootstrap/Nav";
 
 export default function Home() {
     const [cocktails, setCocktails] = useState([]); //cocktails shown on the website
     const [checked, setChecked] = useState(false);
     const handleClick = () => handleFilterAlcoholic(); //handle checkbox
-    const cocktailNameRef = useRef()
-    const cocktailIngRef = useRef()
+    const cocktailNameRef = useRef();
+
+    const [addrtype, setAddrtype] = useState(["Orange", "Gin", "Lemon", "Coke", "Vodka"])
+    const Add = addrtype.map(Add => Add);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [cocktailsPerPage, setCocktailsPerPage] = useState(10);
 
     useEffect(() => {
         fetch('https://www.thecocktaildb.com/api/json/v1/1/search.php?s=')
@@ -17,19 +24,9 @@ export default function Home() {
        }, []); //call always when the webpage loads
 
     function handleSearchCocktail(e){ //filter cocktails by name
-        cocktailIngRef.current.value = "";
         const cocktailName = cocktailNameRef.current.value;
         console.log(cocktailName);
         fetch("https://www.thecocktaildb.com/api/json/v1/1/search.php?s="+cocktailName)
-            .then((response) => response.json())
-            .then((actualData) => setCocktails(actualData.drinks));
-    }
-
-    function handleSearchIngredient(e){ //filter cocktails by ingredient
-        cocktailNameRef.current.value = "";
-        const cocktailIng = cocktailIngRef.current.value;
-        console.log(cocktailIng);
-        fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?i="+cocktailIng)
             .then((response) => response.json())
             .then((actualData) => setCocktails(actualData.drinks));
     }
@@ -45,16 +42,43 @@ export default function Home() {
         setChecked(!checked);
     }
 
+    async function handleFilterIngredient(e){
+        //console.log((addrtype[e.target.value]));
+        const cocktailsFilteredResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?i="+addrtype[e.target.value])
+            .then((response) => response.json());
+        const cocktailsFiltered = cocktailsFilteredResponse.drinks;
+        //console.log(cocktailsFiltered);
+
+        const fullCocktailDetails = [];
+        for (const cocktail of cocktailsFiltered){
+            const cocktailDetailsResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i="+cocktail.idDrink)
+            .then((response) => response.json());
+            //console.log(cocktailDetailsResponse);
+            const cocktailDetails = cocktailDetailsResponse.drinks[0];
+            //console.log(cocktailDetails);
+            fullCocktailDetails.push(cocktailDetails);
+        }
+        //console.log(fullCocktailDetails);
+        setCocktails(fullCocktailDetails);
+
+    }
+
     function handleClearFilters(){ //clear all filters
         setChecked(false);
         cocktailNameRef.current.value = "";
-        cocktailIngRef.current.value = "";
         fetch('https://www.thecocktaildb.com/api/json/v1/1/search.php?s=')
         .then((response) => response.json())
         .then((actualData) => setCocktails(actualData.drinks));
+        setCurrentPage(1);
     }
 
+    //Get current cocktails
+    const indexOfLastCocktail = currentPage * cocktailsPerPage;
+    const indexOfFirstCocktail = indexOfLastCocktail - cocktailsPerPage;
+    const currentCocktails = cocktails.slice(indexOfFirstCocktail, indexOfLastCocktail);
 
+    //Change page
+    const paginate = pageNumber => setCurrentPage(pageNumber);
     return (
     <>
         <Navbar bg="dark" variant="dark">
@@ -65,17 +89,25 @@ export default function Home() {
         </Navbar>
         <div>Search Cocktail By Name</div>
         <input ref={cocktailNameRef} type="text"/>
-        <button onClick={handleSearchCocktail}>Search Cocktail</button>
+        <Button onClick={handleSearchCocktail} variant="primary">Search</Button>
         <div>------------------------------</div>
-        <div>Search Cocktail By Ingredient</div>
-        <input ref={cocktailIngRef} type="text"/>
-        <button onClick={handleSearchIngredient}>Search Ingredient</button>
+        <div>Filter Cocktail By Ingredient</div>
+        < select
+            onChange={e => handleFilterIngredient(e)}
+            className="browser-default custom-select" >
+            {
+                Add.map((address, key) => <option key={key}value={key}>{address}</option>)
+            }
+        </select >
+        
+        
         <div>------------------------------</div>
         <input onClick={handleClick} checked={checked} type="checkbox" name="alcoholic" />
         <label for="alcoholic">Alcoholic</label>
         <div>------------------------------</div>
-        <button onClick={handleClearFilters}>Clear Filters</button>
-        <CocktailList cocktails={cocktails}/>
+        <Button onClick={handleClearFilters} variant="primary">Clear Filters</Button>
+        <CocktailList cocktails={currentCocktails}/>
+        <Pagination cocktailsPerPage={cocktailsPerPage} totalCocktails={cocktails.length} paginate={paginate} />
     </>
 
   )

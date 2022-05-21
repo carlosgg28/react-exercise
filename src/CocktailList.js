@@ -9,7 +9,7 @@ export default function CocktailList({cocktails}) {
         <Table striped bordered hover>
             <thead>
                 <tr>
-                <th>#</th>
+                <th>ID</th>
                 <th>Name</th>
                 <th>Image</th>
                 <th>Drink Info</th>

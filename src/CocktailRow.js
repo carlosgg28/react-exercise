@@ -23,9 +23,11 @@ export default function CocktailRow({cocktail}) {
                     <img src={cocktail.strDrinkThumb +'/preview'}/>
                         <h4>Ingredients</h4>
                         <p>
-                        {ingredients.map((ingredient) => ( //show ingredients as list
-                        <li>{ingredient}</li>
-                        ))}
+                            <ul class="list-group">
+                                {ingredients.map((ingredient) => ( //show ingredients as list
+                                <li class="list-group-item">{ingredient}</li>
+                                ))}
+                            </ul>
                         </p>
                         <h4>Instructions</h4>
                         <p>
