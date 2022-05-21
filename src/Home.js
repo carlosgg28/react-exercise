@@ -14,6 +14,13 @@ export default function Home() {
     const [ingFilter, setIngFilter] = useState(["Orange", "Gin", "Lemon", "Coke", "Vodka"])
     const Ing = ingFilter.map(Ing => Ing);
 
+    const [catFilter, setCatFilter] = useState(["Ordinary Drink", "Shot", "Coffee / Tea", "Homemade Liqueur", "Cocoa"])
+    const Cat = catFilter.map(Cat => Cat);
+
+    const [glassFilter, setGlassFilter] = useState(["Highball glass", "Whiskey Glass", "Shot glass", "Brandy snifter", "White wine glass"])
+    const Glass = glassFilter.map(Glass => Glass);
+
+
     const [currentPage, setCurrentPage] = useState(1);
     const [cocktailsPerPage, setCocktailsPerPage] = useState(10);
 
@@ -85,6 +92,46 @@ export default function Home() {
 
     }
 
+    async function handleFilterCategory(e){
+        const cocktailsFilteredResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?c="+catFilter[e.target.value])
+            .then((response) => response.json());
+        const cocktailsFiltered = cocktailsFilteredResponse.drinks;
+        //console.log(cocktailsFiltered);
+
+        const fullCocktailDetails = [];
+        for (const cocktail of cocktailsFiltered){
+            const cocktailDetailsResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i="+cocktail.idDrink)
+            .then((response) => response.json());
+            //console.log(cocktailDetailsResponse);
+            const cocktailDetails = cocktailDetailsResponse.drinks[0];
+            //console.log(cocktailDetails);
+            fullCocktailDetails.push(cocktailDetails);
+        }
+        //console.log(fullCocktailDetails);
+        setCocktails(fullCocktailDetails);
+
+    }
+
+    async function handleFilterGlass(e){
+        const cocktailsFilteredResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/filter.php?g="+glassFilter[e.target.value])
+            .then((response) => response.json());
+        const cocktailsFiltered = cocktailsFilteredResponse.drinks;
+        //console.log(cocktailsFiltered);
+
+        const fullCocktailDetails = [];
+        for (const cocktail of cocktailsFiltered){
+            const cocktailDetailsResponse = await fetch("https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i="+cocktail.idDrink)
+            .then((response) => response.json());
+            //console.log(cocktailDetailsResponse);
+            const cocktailDetails = cocktailDetailsResponse.drinks[0];
+            //console.log(cocktailDetails);
+            fullCocktailDetails.push(cocktailDetails);
+        }
+        //console.log(fullCocktailDetails);
+        setCocktails(fullCocktailDetails);
+
+    }
+
     function handleClearFilters(){ //clear all filters
         setChecked(false);
         cocktailNameRef.current.value = "";
@@ -119,6 +166,26 @@ export default function Home() {
             className="browser-default custom-select" >
             {
                 Ing.map((ingredient, key) => <option key={key}value={key}>{ingredient}</option>)
+            }
+        </select >
+
+        <div>------------------------------</div>
+        <div>Filter Cocktail By Category</div>
+        < select
+            onChange={e => handleFilterCategory(e)}
+            className="browser-default custom-select" >
+            {
+                Cat.map((category, key) => <option key={key}value={key}>{category}</option>)
+            }
+        </select >
+
+        <div>------------------------------</div>
+        <div>Filter Cocktail By Glass</div>
+        < select
+            onChange={e => handleFilterGlass(e)}
+            className="browser-default custom-select" >
+            {
+                Glass.map((glass, key) => <option key={key}value={key}>{glass}</option>)
             }
         </select >
         
